@@ -1,0 +1,178 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252"><title> B-spline Curves: Computing the Coefficients  </title>
+</head><body background="B-spline%20Curves:%20Computing%20the%20Coefficients_files/background.gif" vlink="#FF1CAC" text="#0A0AFF" link="#22806A" alink="#666666">
+
+<h1> B-spline Curves:  Computing the Coefficients </h1>
+
+<img src="B-spline%20Curves:%20Computing%20the%20Coefficients_files/GrLine.gif">
+<p>
+Although 
+<a href="https://www.cs.mtu.edu/%7Eshene/COURSES/cs3621/NOTES/spline/B-spline/de-Boor.html">de Boor's algorithm</a> is a standard way for
+computing the point on a B-spline curve that corresponds to a given
+<i>u</i>, we really need these coefficients in many cases (<i>e.g.</i>, curve 
+interpolation and approximation).  We shall illustrate a simple
+way to do this.
+</p><p>
+Given a <i>clamped</i> B-spline curve of degree <i>p</i> defined by
+<i>n</i>+1 control points <b>P</b><sub>0</sub>, <b>P</b><sub>1</sub>, ...,
+<b>P</b><sub><i>n</i></sub>, and <i>m</i>+1 knots
+<i>u</i><sub>0</sub>=<i>u</i><sub>1</sub>=...=<i>u</i><sub><i>p</i></sub>=0,
+<i>u</i><sub><i>p</i>+1</sub>, <i>u</i><sub><i>p</i>+2</sub>, ...,
+<i>u</i><sub><i>m-p</i>-1</sub>,
+<i>u</i><sub><i>m-p</i></sub>=<i>u</i><sub><i>m-p</i>+1</sub>=...=
+<i>u</i><sub><i>m</i></sub>=1,  we want to compute the coefficients
+<i>N</i><sub>0,<i>p</i></sub>(<i>u</i>),
+<i>N</i><sub>1,<i>p</i></sub>(<i>u</i>), ..., 
+<i>N</i><sub><i>n,p</i></sub>(<i>u</i>) for any given <i>u</i> in [0,1].
+A naive way is the use of the following recurrence relation:  
+</p><p>
+</p><center>
+<img src="B-spline%20Curves:%20Computing%20the%20Coefficients_files/bs-basis.jpg" border="1">
+</center>
+<p>
+However, this is a very time consuming process.  To compute 
+<i>N</i><sub><i>i,p</i></sub>(<i>u</i>), we need to compute
+<i>N</i><sub><i>i,p</i>-1</sub>(<i>u</i>) and 
+<i>N</i><sub><i>i</i>+1,<i>p</i>-1</sub>(<i>u</i>).  To compute
+<i>N</i><sub><i>i,p</i>-1</sub>(<i>u</i>), we need to compute
+<i>N</i><sub><i>i,p</i>-2</sub>(<i>u</i>) and
+<i>N</i><sub><i>i</i>+1,<i>p</i>-2</sub>(<i>u</i>).  To compute
+<i>N</i><sub><i>i</i>+1,<i>p</i>-1</sub>(<i>u</i>), we need
+<i>N</i><sub><i>i</i>+1,<i>p</i>-2</sub>(<i>u</i>) and
+<i>N</i><sub><i>i</i>+2,<i>p</i>-2</sub>(<i>u</i>).  As you can see,
+<i>N</i><sub><i>i</i>+1,<i>p</i>-2</sub>(<i>u</i>) appears twice, and, as a
+result, its recursive computations will also be repeated.  As the recursion
+goes deeper, more duplicated computations will occur.  This is
+very similar to the recursive version of de Casteljau's algorithm discussed on
+a <a href="https://www.cs.mtu.edu/%7Eshene/COURSES/cs3621/NOTES/spline/Bezier/de-casteljau.html">previous</a> page.  
+Consequently, the computation speed is <b><i>very</i></b> slow.  
+</p><p>
+There is an easy way.  Suppose <i>u</i> is in knot span
+[<i>u</i><sub><i>k</i></sub>,<i>u</i><sub><i>k</i>+1</sub>).  
+An <a href="https://www.cs.mtu.edu/%7Eshene/COURSES/cs3621/NOTES/spline/B-spline/bspline-property.html">important property</a> of B-spline
+basis functions states that 
+<font color="#FF0000"><b>at most</b></font> <i>p</i>+1 basis
+functions of degree <i>p</i> are non-zero on 
+[<i>u</i><sub><i>k</i></sub>,<i>u</i><sub><i>k</i>+1</sub>), namely:
+<i>N</i><sub><i>k-p,p</i></sub>(<i>u</i>),
+<i>N</i><sub><i>k-p</i>+1,<i>p</i></sub>(<i>u</i>),
+<i>N</i><sub><i>k-p</i>+2,<i>p</i></sub>(<i>u</i>), ...,
+<i>N</i><sub><i>k</i>-1,<i>p</i></sub>(<i>u</i>),
+<i>N</i><sub><i>k</i>,<i>p</i></sub>(<i>u</i>). By definition, the only
+non-zero basis function of degree 0 on
+[<i>u</i><sub><i>k</i></sub>,<i>u</i><sub><i>k</i>+1</sub>) is
+<i>N</i><sub><i>k</i>,0</sub>(<i>u</i>).  As a result, the coefficients can be
+computed from <i>N</i><sub><i>k</i>,0</sub>(<i>u</i>) in a "fan-out"
+triangular form as shown below:
+</p><p>
+</p><center>
+<img src="B-spline%20Curves:%20Computing%20the%20Coefficients_files/bspline-triangle.jpg" border="2">
+</center>
+<p>
+Since <i>N</i><sub><i>k</i>,0</sub>(<i>u</i>) = 1 on knot span
+[<i>u</i><sub><i>k</i></sub>,<i>u</i><sub><i>k</i>+1</sub>) and
+other B-spline basis functions of degree 0 are zero on
+[<i>u</i><sub><i>k</i></sub>,<i>u</i><sub><i>k</i>+1</sub>),
+we can start from <i>N</i><sub><i>k</i>,0</sub>(<i>u</i>) and compute
+the basis functions of degree 1 <i>N</i><sub><i>k</i>-1,1</sub>(<i>u</i>) and
+<i>N</i><sub><i>k</i>,1</sub>(<i>u</i>).  From these two values,
+we can compute the basis functions of degree 2
+<i>N</i><sub><i>k</i>-2,2</sub>(<i>u</i>),
+<i>N</i><sub><i>k</i>-1,2</sub>(<i>u</i>) and
+<i>N</i><sub><i>k</i>,2</sub>(<i>u</i>).  This process repeats until all
+<i>p</i>+1 non-zero coefficients are computed.  
+</p><p>
+In this computation, "internal" values such as
+<i>N</i><sub><i>k</i>-1,2</sub>(<i>u</i>) has a north-west predecessor
+(<i>i.e.</i>, <i>N</i><sub><i>k</i>-1,1</sub>(<i>u</i>)) and a south-west 
+predecessor (<i>i.e.</i>, <i>N</i><sub><i>k</i>,1</sub>(<i>u</i>)); values on 
+the north-east direction boundary of the above triangle such as
+<i>N</i><sub><i>k</i>-1,1</sub>(<i>u</i>) has only a south-west predecessor
+(<i>i.e.</i>, <i>N</i><sub><i>k</i>,0</sub>(<i>u</i>)); and values on the
+south-east direction boundary of this triangle such as
+<i>N</i><sub><i>k</i>,2</sub>(<i>u</i>) has only a north-west predecessor
+(<i>i.e.</i>, <i>N</i><sub><i>k</i>,1</sub>(<i>u</i>)).  Thus, values that
+are on the north-east (<i>resp.</i>, south-east) direction boundary
+use the second (<i>resp.</i>, first) term of the recurrence relation in the
+definition.  Only the internal values use both terms.
+Based on this observation, we have the following algorithm:
+</p><p>
+</p><ul>
+     <b><u>Input</u></b>: <i>n</i>, <i>p</i>, <i>m</i>, <i>u</i>, and <i>m</i>+1
+          clamped knots { <i>u</i><sub>0</sub>, ..., <i>u</i><sub><i>m</i></sub> } <br>
+     <b><u>Output</u></b>: Coefficients <i>N</i><sub>0,<i>p</i></sub>(<i>u</i>),
+               <i>N</i><sub>1,<i>p</i></sub>(<i>u</i>), ...,
+               <i>N</i><sub><i>n,p</i></sub>(<i>u</i>) in
+               N[0], N[1], ..., N[<i>n</i>] <br>
+     <b><u>Algorithm</u></b>:
+<ul>
+     Initialize N[0..<i>n</i>] to 0; // initialization <br>
+     <b>if</b> <i>u</i> = <i>u</i><sub>0</sub> <b>then</b> // rule out special cases<br>
+     <ul>
+          N[0] = 1.0; <br>
+          <b>return</b> <br>
+     </ul>
+     <b>else</b> <i>u</i> = <i>u</i><sub><i>m</i></sub> <b>then</b> <br>
+     <ul>
+          N[<i>n</i>] = 1.0 <br>
+          <b>return</b> <br>
+     </ul>
+     <b>end if</b>
+     <p>
+     // now <i>u</i> is between <i>u</i><sub>0</sub> and <i>u</i><sub><i>m</i></sub>
+     </p><p>
+     Let <i>u</i> be in knot span
+          [<i>u</i><sub><i>k</i></sub>,<i>u</i><sub><i>k</i>+1</sub>); <br>
+     N[<i>k</i>] := 1.0 // degree 0 coefficient <br>
+     <b>for</b> <i>d</i> :=1 <b>to</b> <i>p</i> <b>do</b> // degree <i>d</i> goes from 1 to <i>p</i> <br>
+     </p><ul>
+          <b>begin</b> <br>
+          <ul>
+               N[<i>k-d</i>] = <img src="B-spline%20Curves:%20Computing%20the%20Coefficients_files/bspline-right-term.jpg" border="0" align="MIDDLE"> * N[(<i>k-d</i>)+1]; 
+                         // right (south-west corner) term only <br>
+               <b>for</b> <i>i</i> := <i>k-d</i>+1 <b>to</b> <i>k</i>-1 <b>do</b>  // compute internal terms  <br>
+               <ul>
+                    N[<i>i</i>] :=  <img src="B-spline%20Curves:%20Computing%20the%20Coefficients_files/bspline-term-1.jpg" border="0" align="MIDDLE">
+                              * N[<i>i</i>] +
+                             <img src="B-spline%20Curves:%20Computing%20the%20Coefficients_files/bspline-term-2.jpg" border="0" align="MIDDLE">
+                              * N[<i>i</i>+1];<br>
+               </ul>
+               N[<i>k</i>] = <img src="B-spline%20Curves:%20Computing%20the%20Coefficients_files/bspline-left-term.jpg" border="0" align="MIDDLE">
+                              * N[<i>k</i>];  // let (north-west corner) term only    <br>
+
+          </ul>
+          <b>end</b>
+     </ul>
+     // array N[0..<i>n</i>] has the coefficients.
+</ul>
+</ul>
+The above is not a very efficient algorithm.  Its purpose is to illustrate the
+idea in an intuitive and easy to understand way.
+Array N[&nbsp;] holds all intermediate and the final results.
+For a degree <i>d</i>, N[<i>i</i>] stores the value of 
+<i>N</i><sub><i>i,d</i></sub>(<i>u</i>), and, at the end, N[<i>k-d</i>],
+N[<i>k-d</i>+1], ..., N[<i>k</i>] contain the non-zero coefficients.
+The computation starts with <i>d</i>=1 because we know that the only non-zero
+basis function is <i>N</i><sub><i>k</i>,0</sub>(<i>u</i>) if <i>u</i> is in 
+knot span [<i>u</i><sub><i>k</i></sub>,<i>u</i><sub><i>k</i>+1</sub>).
+The outer loop lets degree <i>d</i> go from 1 to <i>p</i>.  The first
+assignment following <b>begin</b> computes 
+<i>N</i><sub><i>k-d</i>,<i>d</i></sub>(<i>u</i>) using only one term
+(<i>i.e.</i>, its south-west term in the triangle,
+<i>N</i><sub><i>k-d</i>+1,<i>d</i>-1</sub>(<i>u</i>)), the inner <b>for</b> loop
+computes the "internal" terms, and the last statement in the outer loop
+computes <i>N</i><sub><i>k,d</i></sub>(<i>u</i>) using only one term
+(<i>i.e.</i>, its north-west term in the triangle,
+<i>N</i><sub><i>k,d</i>-1</sub>(<i>u</i>)).
+<p>
+Can you make this algorithm more efficient?
+
+
+
+
+
+
+
+
+
+</p></body></html>
